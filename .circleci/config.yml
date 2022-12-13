@@ -225,4 +225,4 @@ workflows:
       #     requires: [smoke-test]
 
       - cleanup:
-          requires:[configure-infrastructure] # [cloudfront-update]
+            requires: [configure-infrastructure] # [cloudfront-update]
