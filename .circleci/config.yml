@@ -169,6 +169,30 @@ jobs:
               # aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> inventory.txt
               # cat inventory.txt
               ansible-playbook -i inventory.txt configure-server.yml
+   run-migrations:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Run migrations
+          command: |
+            cd backend
+            npm install            
+            npm run migrations > migrations_dump.txt
+            #exit 1
+      - run:
+          name: Send migration status to kvdb.io
+          command: |
+            cat ~/project/backend/migrations_dump.txt
+            if grep -q "No migrations are pending" ~/project/backend/migrations_dump.txt
+            then                
+            curl -k https://kvdb.io/KYiXNLKq9E6FeQkDqnehVd/migration_${CIRCLE_WORKFLOW_ID:0:5}  -d '1'
+            fi
+            #exit 1
+      #- revert-migrations   
    cloudfront-update:
      docker:
        - image: amazon/aws-cli
@@ -250,10 +274,11 @@ workflows:
       #        branches:
       #          only: [master]
       - deploy-infrastructure
-      - configure-infrastructure:
-           requires: [deploy-infrastructure]
+      # - configure-infrastructure:
+      #      requires: [deploy-infrastructure]
       # - run-migrations:
-      #     requires: [configure-infrastructure]
+      #      requires: [configure-infrastructure]
+
       # - deploy-frontend:
       #     requires: [run-migrations]
       # - deploy-backend:
@@ -261,6 +286,6 @@ workflows:
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
-           requires: [configure-infrastructure]  #[smoke-test]
+           requires: [deploy-infrastructure]  #[smoke-test]
       - cleanup:
             requires: [cloudfront-update]
