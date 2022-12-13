@@ -1,0 +1,53 @@
+---
+- name: "update apt packages"
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: "upgrade packages"
+  become: yes
+  apt:
+    upgrade: yes
+
+- name: "install python"
+  become: yes
+  apt:
+    name: python
+    update_cache: yes
+
+- name: "install npm & node"
+  become: yes
+  apt:
+    name: ["nodejs" , "npm"]
+    state: latest
+    update_cache: yes
+
+- name: "install pm2"
+  become: yes
+  npm:
+    name: pm2
+    global: yes
+    production: yes
+    state: present
+
+- name: copy backend artifact
+  become: yes
+  copy:
+    src:  "/root/project/artifact.tar.gz"
+    dest: "./artifact.tar.gz"
+    remote_src: false
+
+- name: "unzip artifact"
+  shell:  |
+    tar -xzvf artifact.tar.gz
+
+- name: "run npm install"
+  shell:  |    
+    npm install
+
+- name: Start app with pm2
+  shell:  |
+    # . /etc/environment
+    # . ~/.bashrc
+    #bash -ilc 'pm2 stop default'
+    bash -ilc 'pm2 start npm -- start'
