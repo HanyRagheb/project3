@@ -1,0 +1,75 @@
+---
+- name: "update apt packages"
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: "upgrade packages"
+  become: yes
+  apt:
+    upgrade: yes
+
+- name: "install python"
+  become: yes
+  apt:
+    name: python
+    update_cache: yes
+
+- name: "install npm & node"
+  become: yes
+  apt:
+    name: ["nodejs" , "npm"]
+    state: latest
+    update_cache: yes
+
+- name: "install pm2"
+  become: yes
+  npm:
+    name: pm2
+    global: yes
+    production: yes
+    state: present
+
+- name: "exporting env variables"
+  become: yes  
+  shell:  |    
+    touch /etc/profile.d/env.sh
+    echo export TYPEORM_HOST=$TYPTYPEORM_HOST >> /etc/profile.d/env.sh
+    echo export TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> /etc/profile.d/env.sh
+    echo export TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> /etc/profile.d/env.sh
+    echo export TYPEORM_HOST=$TYPEORM_HOST >> /etc/profile.d/env.sh
+    echo export TYPEORM_PORT=$TYPEORM_PORT >> /etc/profile.d/env.sh
+    echo export TYPEORM_USERNAME=$TYPEORM_USERNAME >> /etc/profile.d/env.sh
+    echo export TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> /etc/profile.d/env.sh
+    echo export TYPEORM_DATABASE=$TYPEORM_DATABASE >> /etc/profile.d/env.sh
+    echo export TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> /etc/profile.d/env.sh
+    echo export TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> /etc/profile.d/env.sh
+    . /etc/environment
+    . ~/.bashrc
+
+- name: install & configure prometheus node exporter
+  become: yes
+  shell: |
+    useradd --no-create-home node_exporter
+    wget https://github.com/prometheus/node_exporter/releases/download/v1.4.0/node_exporter-1.4.0.linux-amd64.tar.gz
+    tar xzf node_exporter-1.4.0.linux-amd64.tar.gz
+    cp node_exporter-1.4.0.linux-amd64/node_exporter /usr/local/bin/node_exporter
+    rm -rf node_exporter-1.4.0.linux-amd64.tar.gz node_exporter-1.4.0.linux-amd64
+    touch /etc/systemd/system/node-exporter.service
+    cat > /etc/systemd/system/node-exporter.service << '_EOF'
+    [Unit]
+    Description=Prometheus Node Exporter Service
+    After=network.target
+    [Service]
+    User=node_exporter
+    Group=node_exporter
+    Type=simple
+    ExecStart=/usr/local/bin/node_exporter
+    [Install]
+    WantedBy=multi-user.target
+    _EOF
+    cat /etc/systemd/system/node-exporter.service
+    systemctl daemon-reload
+    systemctl enable node-exporter
+    systemctl start node-exporter
+    systemctl status node-exporter
