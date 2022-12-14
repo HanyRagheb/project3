@@ -386,7 +386,7 @@ jobs:
           command: |
             export OldWorkflowID=$(cat ~/OldWorkflowID.txt)
             echo $OldWorkflowID           
-            # Fetch the stack names          
+            # Fetch the stack names for frontend and backend        
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                     --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}"            
