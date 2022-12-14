@@ -162,8 +162,8 @@ jobs:
            name: Add back-end ip to ansible inventory
            command: |
             aws cloudformation \
-            list-exports --query "Exports[?Name==\`BackendPublicIP-${CIRCLE_WORKFLOW_ID:0:5}\`].Value" \
-            --no-paginate --output text >> .circleci/ansible/inventory.txt
+            list-exports --query "Exports[?Name==\`BackendIP-${CIRCLE_WORKFLOW_ID:0:5}\`].Value" \
+            --no-paginate --output text >> ~/project/.circleci/ansible/inventory.txt
 
             #aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> .circleci/ansible/inventory.txt
             cat ~/project/.circleci/ansible/inventory.txt
@@ -238,7 +238,7 @@ jobs:
           name: Get backend url
           command: |
             export BACKEND_IP=$(aws cloudformation \
-              list-exports --query "Exports[?Name==\`BackendPublicIP-${CIRCLE_WORKFLOW_ID:0:5}\`].Value" \
+              list-exports --query "Exports[?Name==\`BackendIP-${CIRCLE_WORKFLOW_ID:0:5}\`].Value" \
               --no-paginate --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
@@ -276,7 +276,7 @@ jobs:
           name: Add back-end ip to ansible inventory
           command: |
             aws cloudformation \
-            list-exports --query "Exports[?Name==\`BackendPublicIP-${CIRCLE_WORKFLOW_ID:0:5}\`].Value" \
+            list-exports --query "Exports[?Name==\`BackendIP-${CIRCLE_WORKFLOW_ID:0:5}\`].Value" \
             --no-paginate --output text >> ~/project/.circleci/ansible/inventory.txt
             #exit 1
       - run:
@@ -314,7 +314,7 @@ jobs:
           command: |
             # Fetch and prepare the BACKEND_IP env var
             BACKEND_IP=$(aws cloudformation \
-            list-exports --query "Exports[?Name==\`BackendPublicIP-${CIRCLE_WORKFLOW_ID:0:5}\`].Value" \
+            list-exports --query "Exports[?Name==\`BackendIP-${CIRCLE_WORKFLOW_ID:0:5}\`].Value" \
             --no-paginate --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
